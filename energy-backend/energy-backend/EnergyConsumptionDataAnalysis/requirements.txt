@@ -1,0 +1,17 @@
+Flask
+flask-cors
+python-dotenv==1.0.1
+gunicorn
+numpy
+pandas
+scikit-learn
+joblib
+pdfplumber
+groq
+requests
+flask-jwt-extended
+bcrypt
+xgboost
+Flask_Bcrypt
+resend
+psycopg2-binary
