@@ -4,15 +4,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import Predict from "./pages/Predict";
-import Dashboard from "./pages/Dashboard";
-import Chatbot from "./pages/Chatbot";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup"
-import Unauthorized from "./pages/Unauthorized";
-import Queries from "./pages/Queries";
+import { lazy, Suspense } from "react";
+import { AuthProvider } from "@/contexts/AuthContext";
+const Index = lazy(() => import("./pages/Index"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
+const Forecast = lazy(() => import("./pages/Forecast"));
+const Predictor = lazy(() => import("./pages/Predictor"));
+const Anomalies = lazy(() => import("./pages/Anomalies"));
+const Copilot = lazy(() => import("./pages/Copilot"));
+const BillAnalysis = lazy(() => import("./pages/BillAnalysis"));
 
 const queryClient = new QueryClient();
 
@@ -21,21 +25,25 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={ <Navigate to="/index" replace /> }/>
-          <Route path="/index" element={<Index />} />
+      <AuthProvider><BrowserRouter>
+        <Suspense fallback={<p role="status" className="p-8">Loading workspace...</p>}><Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/index" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="/predict" element={<ProtectedRoute> <Predict /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
-          <Route path="/chatbot" element={<ProtectedRoute> <Chatbot /> </ProtectedRoute>} />
-          <Route path="/queries" element={<ProtectedRoute> <Queries /> </ProtectedRoute>} />
+          <Route path="/predict" element={<ProtectedRoute><Predictor /></ProtectedRoute>} />
+          <Route path="/forecast" element={<ProtectedRoute><Forecast /></ProtectedRoute>} />
+          <Route path="/anomalies" element={<ProtectedRoute><Anomalies /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/chatbot" element={<Navigate to="/copilot" replace />} />
+          <Route path="/copilot" element={<ProtectedRoute><Copilot /></ProtectedRoute>} />
+          <Route path="/bills" element={<ProtectedRoute><BillAnalysis /></ProtectedRoute>} />
+          <Route path="/queries" element={<Navigate to="/copilot" replace />} />
           
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+        </Routes></Suspense>
+      </BrowserRouter></AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -1,0 +1,156 @@
+{
+  "dataset": {
+    "rows": 19735,
+    "start": "2016-01-11T17:00:00",
+    "end": "2016-05-27T18:00:00",
+    "interval_minutes": 10,
+    "target": "Appliances",
+    "unit": "Wh per ten-minute interval",
+    "missing_values": 0,
+    "duplicate_timestamps": 0,
+    "irregular_intervals": 0,
+    "excluded_columns": [
+      "rv1",
+      "rv2"
+    ],
+    "sha256": "2820bf712ad0275cb18b85a05250926100d8e65ebb9f4d2d016ca91ea152a25d"
+  },
+  "selected_model": "xgboost_absolute",
+  "selection_rule": "lowest validation MAE, including persistence",
+  "split_strategy": "chronological 70/15/15 after 144-row warmup",
+  "warmup_rows": 144,
+  "splits": {
+    "train": {
+      "rows": 13713,
+      "start": "2016-01-12T17:00:00",
+      "end": "2016-04-16T22:20:00"
+    },
+    "validation": {
+      "rows": 2939,
+      "start": "2016-04-16T22:30:00",
+      "end": "2016-05-07T08:10:00"
+    },
+    "test": {
+      "rows": 2939,
+      "start": "2016-05-07T08:20:00",
+      "end": "2016-05-27T18:00:00"
+    }
+  },
+  "comparison": {
+    "persistence": {
+      "validation": {
+        "mae_wh": 25.7808780670166,
+        "rmse_wh": 65.50222145564989,
+        "r2": 0.47258853912353516,
+        "smape_percent": 20.689242107698195
+      },
+      "test": {
+        "mae_wh": 26.72337532043457,
+        "rmse_wh": 66.78593294881603,
+        "r2": 0.46107012033462524,
+        "smape_percent": 19.748178401352344
+      },
+      "fit_seconds": 0.012
+    },
+    "ridge": {
+      "validation": {
+        "mae_wh": 26.641733169555664,
+        "rmse_wh": 59.058519211086306,
+        "r2": 0.5712515115737915,
+        "smape_percent": 23.717697486019187
+      },
+      "test": {
+        "mae_wh": 27.20766830444336,
+        "rmse_wh": 60.18493025731711,
+        "r2": 0.5623390078544617,
+        "smape_percent": 22.459779309978618
+      },
+      "fit_seconds": 0.034
+    },
+    "random_forest": {
+      "validation": {
+        "mae_wh": 30.448498749338665,
+        "rmse_wh": 61.74314727596987,
+        "r2": 0.5313862731835741,
+        "smape_percent": 24.70206828892687
+      },
+      "test": {
+        "mae_wh": 41.23034534911466,
+        "rmse_wh": 73.17900474482556,
+        "r2": 0.3529537763573075,
+        "smape_percent": 29.5435646737744
+      },
+      "fit_seconds": 17.944
+    },
+    "xgboost": {
+      "validation": {
+        "mae_wh": 26.708038330078125,
+        "rmse_wh": 57.45125311405314,
+        "r2": 0.5942705869674683,
+        "smape_percent": 22.61561637605635
+      },
+      "test": {
+        "mae_wh": 38.25059127807617,
+        "rmse_wh": 63.821440515952396,
+        "r2": 0.5078522562980652,
+        "smape_percent": 32.355705883201516
+      },
+      "fit_seconds": 3.607
+    },
+    "xgboost_absolute": {
+      "validation": {
+        "mae_wh": 22.996124267578125,
+        "rmse_wh": 59.437764934346454,
+        "r2": 0.5657273530960083,
+        "smape_percent": 19.183018813438782
+      },
+      "test": {
+        "mae_wh": 23.513216018676758,
+        "rmse_wh": 61.20008329498008,
+        "r2": 0.5474502444267273,
+        "smape_percent": 17.981418858718527
+      },
+      "fit_seconds": 1.377
+    }
+  },
+  "recursive_test": {
+    "6": {
+      "origins": 12,
+      "horizon_minutes": 60,
+      "selected_model": {
+        "mae_wh": 37.069319444444446,
+        "rmse_wh": 72.65612026191523,
+        "r2": 0.20651012436534455,
+        "smape_percent": 29.28483756325308
+      },
+      "persistence": {
+        "mae_wh": 67.77777777777777,
+        "rmse_wh": 140.18836534383934,
+        "r2": -1.9540709812108554,
+        "smape_percent": 38.99352879289011
+      }
+    },
+    "144": {
+      "origins": 12,
+      "horizon_minutes": 1440,
+      "selected_model": {
+        "mae_wh": 49.51240856481482,
+        "rmse_wh": 100.26808728555052,
+        "r2": -0.20726854397461558,
+        "smape_percent": 45.12334242692646
+      },
+      "persistence": {
+        "mae_wh": 71.40046296296296,
+        "rmse_wh": 133.04656661819158,
+        "r2": -1.125620684429407,
+        "smape_percent": 47.42213909588319
+      }
+    }
+  },
+  "residual_threshold_wh": 289.6308953857417,
+  "evaluation_policy": "one-step uses observed past values; recursive multi-step uses only history at origin",
+  "versions": {
+    "sklearn": "1.9.1",
+    "xgboost": "3.4.1"
+  }
+}

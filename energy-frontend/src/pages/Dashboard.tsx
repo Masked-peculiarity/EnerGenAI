@@ -1,263 +1,65 @@
+import { useEffect, useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
-import { motion } from "framer-motion";
-import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
-} from "recharts";
-import { Zap, TrendingUp, TrendingDown, Activity, Lightbulb, Leaf, Clock, } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DemoNotice, EnergyChart, ErrorState, MetricCard, panelClass } from "@/components/energy/Shared";
+import { api, numberLabel, timestampLabel } from "@/services/api";
+import { EnergySummary, Timeseries } from "@/types/energy";
+import { useEnergySettings } from "@/hooks/useEnergySettings";
 
-const API_BASE = import.meta.env.VITE_API_URL;
-
-const Dashboard = () => {
-
-  const [dashboardData, setDashboardData] = useState<any>(null);
+export default function Dashboard() {
+  const { settings, setSettings } = useEnergySettings();
+  const [range, setRange] = useState({ start: "", end: "" });
+  const [summary, setSummary] = useState<EnergySummary | null>(null);
+  const [series, setSeries] = useState<Timeseries | null>(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-
+  const [refresh, setRefresh] = useState(0);
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/dashboard`, {
-          method: "GET",
-          headers: {
-            "Content-type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const data = await res.json();
-        setDashboardData(data);
-
-      } catch (err) {
-        console.error("Dashboard fetch failed", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, []);
-
-  if (loading || !dashboardData) {
-    return (
-      <PageLayout>
-        <div className="text-center py-20 text-muted-foreground">
-          Loading dashboard...
-        </div>
-      </PageLayout>
-    );
-  }
-
-  const kpis = [
-    {
-      title: "Avg Consumption",
-      value: dashboardData.kpis.avg_consumption,
-      unit: "kWh/day",
-      icon: Activity,
-    },
-    {
-      title: "Peak Usage",
-      value: dashboardData.kpis.peak_usage,
-      unit: "kWh",
-      icon: TrendingUp,
-    },
-    {
-      title: "Min Usage",
-      value: dashboardData.kpis.min_usage,
-      unit: "kWh",
-      icon: TrendingDown,
-    },
-    {
-      title: "Renewable Share",
-      value: dashboardData.kpis.renewable_share,
-      unit: "%",
-      icon: Leaf,
-    },
-  ];
-
-  const dailyData = dashboardData.daily_consumption;
-
-  const baseline =
-    dailyData.reduce((sum: number, d: any) => sum + d.value, 0) /
-    dailyData.length;
-
-  const trendData = dailyData.map((d: any) => ({
-    day: d.day,
-    predicted: d.value,
-    baseline,
-  }));
-
-  const energySourceData = [
-    {
-      name: "Grid",
-      value: Math.max(0, 100 - dashboardData.kpis.renewable_share),
-      color: "hsl(210, 90%, 55%)",
-    },
-    {
-      name: "Renewable",
-      value: dashboardData.kpis.renewable_share,
-      color: "hsl(158, 64%, 40%)",
-    },
-  ];
-
-  const savingsTips = [
-    {
-      icon: Lightbulb,
-      tip: "Switch to LED bulbs to reduce lighting costs by up to 75%",
-    },
-    {
-      icon: Clock,
-      tip: "Off appliances during peak hours",
-    },
-    {
-      icon: Leaf,
-      tip: "Consider adding solar panels - average payback is 6-8 years",
-    },
-  ];
-
-  return (
-    <PageLayout>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          Energy <span className="gradient-text">Dashboard</span>
-        </h1>
-        <p className="text-muted-foreground">
-          Predicted energy usage insights and trends
-        </p>
-      </motion.div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {kpis.map((kpi, index) => (
-          <motion.div
-            key={kpi.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="glass rounded-2xl p-5 shadow-soft"
-          >
-            <div className="gradient-bg p-2 rounded-lg w-fit mb-3">
-              <kpi.icon className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <p className="text-2xl font-bold">
-              {kpi.value}
-              <span className="text-sm font-normal text-muted-foreground ml-1">
-                {kpi.unit}
-              </span>
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">{kpi.title}</p>
-          </motion.div>
-        ))}
+    const controller = new AbortController();
+    setLoading(true); setError("");
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries({ ...range, ...settings })) if (value) params.set(key, value);
+    const times = new URLSearchParams();
+    if (range.start) times.set("start", range.start);
+    if (range.end) times.set("end", range.end);
+    times.set("resolution", "hour");
+    Promise.all([api<EnergySummary>(`/api/analytics/summary?${params}`, { signal: controller.signal }), api<Timeseries>(`/api/analytics/timeseries?${times}`, { signal: controller.signal })])
+      .then(([data, trend]) => { setSummary(data); setSeries(trend); })
+      .catch(err => { if (err.name !== "AbortError") setError(err.message); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [range, settings, refresh]);
+  return <PageLayout><h1 className="mb-2 text-3xl font-semibold">Energy dashboard</h1><p className="mb-5 text-muted-foreground">Measured appliance use, forecasts, and unusual intervals from the research household.</p><DemoNotice />
+    <div className={panelClass + " mb-6 grid gap-4 sm:grid-cols-4"}>
+      <div><Label htmlFor="start">From (optional)</Label><Input id="start" type="date" value={range.start} onChange={e => setRange({ ...range, start: e.target.value })} /></div>
+      <div><Label htmlFor="end">Until (exclusive)</Label><Input id="end" type="date" value={range.end} onChange={e => setRange({ ...range, end: e.target.value })} /></div>
+      <div><Label htmlFor="tariff">Rate per kWh (your currency)</Label><Input id="tariff" type="number" min="0" step="0.01" placeholder="Enter your rate" value={settings.tariff} onChange={e => setSettings({ ...settings, tariff: e.target.value })} /></div>
+      <div><Label htmlFor="factor">Grid factor (kg CO2 / kWh)</Label><Input id="factor" type="number" min="0" step="0.01" placeholder="Enter regional factor" value={settings.factor} onChange={e => setSettings({ ...settings, factor: e.target.value })} /></div>
+      <p className="text-xs text-muted-foreground sm:col-span-4">Blank dates show the latest seven recorded days. Cost and carbon cover the appliance channel and require your own assumptions. Settings are saved in this browser.</p>
+    </div>
+    {error && <ErrorState>{error} <Button variant="outline" size="sm" onClick={() => setRefresh(refresh + 1)}>Retry</Button></ErrorState>}
+    {loading && <p role="status">Loading analytics…</p>}
+    {!loading && !error && summary && series && <>
+      <p className="mb-4 text-sm text-muted-foreground">{timestampLabel(summary.period_start)} to {timestampLabel(summary.period_end)} · {summary.observations.toLocaleString()} recorded intervals</p>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard label="Latest appliance interval" value={numberLabel(summary.latest_appliances_wh, 0) + " Wh"} detail={timestampLabel(summary.period_end)} />
+        <MetricCard label="Latest recorded day" value={numberLabel(summary.latest_day_kwh) + " kWh"} detail={summary.latest_recorded_day + " · " + summary.latest_day_intervals + "/144 intervals recorded"} />
+        <MetricCard label="Next-hour forecast" value={numberLabel(summary.predicted_next_hour_kwh) + " kWh"} detail="From the dataset's latest observation" />
+        <MetricCard label="Unusual intervals" value={summary.unusual_intervals == null ? "Not evaluated" : String(summary.unusual_intervals)} detail="Residual or Isolation Forest flag" />
+        <MetricCard label="Selected-period appliances" value={numberLabel(summary.total_appliance_kwh) + " kWh"} />
+        <MetricCard label="Lighting energy" value={numberLabel(summary.lighting_kwh) + " kWh"} detail="Separate lighting channel" />
+        <MetricCard label="Estimated appliance cost" value={numberLabel(summary.estimated_cost)} detail="Your rate's currency; excludes fees and taxes" />
+        <MetricCard label="Estimated carbon" value={numberLabel(summary.estimated_carbon_kg) + (summary.estimated_carbon_kg == null ? "" : " kg CO2")} detail="Using your regional emissions factor" />
       </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Daily Consumption */}
-        <motion.div className="glass rounded-2xl p-6 shadow-card">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            Daily Predicted Consumption
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="hsl(158, 64%, 40%)"
-                fillOpacity={0.3}
-                fill="hsl(158, 64%, 40%)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Predicted vs Trend */}
-        <motion.div className="glass rounded-2xl p-6 shadow-card">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            Predicted vs Historical Trend
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Line dataKey="predicted" stroke="hsl(158, 64%, 40%)" />
-              <Line
-                dataKey="baseline"
-                stroke="hsl(210, 90%, 55%)"
-                strokeDasharray="5 5"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Peak Hours */}
-        <motion.div className="glass rounded-2xl p-6 shadow-card">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            Peak Usage Hours
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={dashboardData.hourly_profile}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="hsl(173, 58%, 39%)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Energy Sources */}
-        <motion.div className="glass rounded-2xl p-6 shadow-card">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Leaf className="h-5 w-5 text-primary" />
-            Energy Sources
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={energySourceData}
-                dataKey="value"
-                innerRadius={60}
-                outerRadius={90}
-              >
-                {energySourceData.map((e, i) => (
-                  <Cell key={i} fill={e.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </motion.div>
+      <EnergyChart rows={series.rows} title="Recorded hourly energy" unit="Wh per hour; edge hours may be partial" series={[{ key: "appliances_wh", label: "Appliances", color: "#159a82" }, { key: "lights_wh", label: "Lighting", color: "#5579b5" }]} />
+      {series.truncated && <p className="mt-2 text-sm">Trend is limited to the first 1,000 hourly points. Narrow the date range for more detail.</p>}
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <MetricCard label="Average complete hour" value={numberLabel(summary.average_hourly_wh) + " Wh"} />
+        <MetricCard label="Average complete day" value={numberLabel(summary.daily_average_kwh) + " kWh"} />
+        <MetricCard label="Highest-use hour" value={numberLabel(summary.peak_hour.appliances_wh, 0) + " Wh"} detail={timestampLabel(summary.peak_hour.timestamp)} />
       </div>
-
-      {/* Tips */}
-      <motion.div className="glass rounded-2xl p-6 shadow-card">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Lightbulb className="h-5 w-5 text-primary" />
-          Energy Saving Tips
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {savingsTips.map((t, i) => (
-            <div key={i} className="flex gap-3 p-4 bg-primary/5 rounded-xl">
-              <t.icon className="h-4 w-4 text-primary" />
-              <p className="text-sm text-foreground">{t.tip}</p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </PageLayout>
-  );
-};
-
-export default Dashboard;
+    </>}
+  </PageLayout>;
+}
