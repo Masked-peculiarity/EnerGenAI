@@ -1,0 +1,197 @@
+{
+  "source": "U.S. EIA 2020 Residential Energy Consumption Survey, public v7",
+  "source_url": "https://www.eia.gov/consumption/residential/data/2020/index.php?view=microdata",
+  "dataset_sha256": "0c66997b500ae5a66419d389f3d9933a18655134e0141d3bd77d6c688714871c",
+  "rows": 18496,
+  "excluded_rows": 0,
+  "unit": "kWh per year",
+  "target": "KWH",
+  "warning": "U.S. 2020 household-profile estimate, including self-generated solar electricity. Not validated for India or a specific home; not a bill or hourly forecast. HVAC fields describe heating fuel and AC use, not real-time On/Off. Occupants are top-coded at 7 (7 or more).",
+  "mode": "home",
+  "selected_model": "xgboost",
+  "selection_rule": "lowest selection MAE",
+  "features": [
+    "floor_area_sqft",
+    "occupants",
+    "heating_degree_days",
+    "cooling_degree_days",
+    "home_type",
+    "heating_fuel",
+    "air_conditioning"
+  ],
+  "ranges": {
+    "floor_area_sqft": {
+      "min": 200.0,
+      "max": 15000.0,
+      "default": 1700.0
+    },
+    "occupants": {
+      "min": 1.0,
+      "max": 7.0,
+      "default": 2.0
+    },
+    "heating_degree_days": {
+      "min": 0.0,
+      "max": 17383.0,
+      "default": 4384.0
+    },
+    "cooling_degree_days": {
+      "min": 0.0,
+      "max": 5534.0,
+      "default": 1185.0
+    }
+  },
+  "choices": {
+    "home_type": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "heating_fuel": [
+      -2,
+      1,
+      2,
+      3,
+      5,
+      7,
+      99
+    ],
+    "air_conditioning": [
+      0,
+      1
+    ]
+  },
+  "split_policy": "household-random 60/15/10/15, fixed seeds 42/43/44; survey-weighted fit/evaluation",
+  "split_rows": {
+    "train": 11097,
+    "selection": 2774,
+    "calibration": 1850,
+    "test": 2775
+  },
+  "comparison": {
+    "mean_baseline": {
+      "selection": {
+        "mae": 5204.791570256933,
+        "rmse": 6984.059444522158,
+        "r2": -9.179424175220774e-06
+      },
+      "test": {
+        "mae": 5177.7686543387845,
+        "rmse": 6848.127359091441,
+        "r2": -2.3296732563737876e-05
+      }
+    },
+    "median_baseline": {
+      "selection": {
+        "mae": 5067.768420251955,
+        "rmse": 7159.139825726069,
+        "r2": -0.05077521807720875
+      },
+      "test": {
+        "mae": 5034.574013546419,
+        "rmse": 7029.222981458096,
+        "r2": -0.053612952201317565
+      }
+    },
+    "ridge": {
+      "selection": {
+        "mae": 3662.86155088654,
+        "rmse": 5174.291976697545,
+        "r2": 0.4511040892154071
+      },
+      "test": {
+        "mae": 3670.415741719248,
+        "rmse": 5129.219480579425,
+        "r2": 0.43899203613619997
+      }
+    },
+    "extra_trees": {
+      "selection": {
+        "mae": 3493.6123738885153,
+        "rmse": 5056.9930078975,
+        "r2": 0.4757084738768508
+      },
+      "test": {
+        "mae": 3450.102091277133,
+        "rmse": 4914.429589445893,
+        "r2": 0.484993518640192
+      }
+    },
+    "xgboost": {
+      "selection": {
+        "mae": 3415.0201175218876,
+        "rmse": 4976.260056155266,
+        "r2": 0.4923150740642894
+      },
+      "test": {
+        "mae": 3377.6335626762234,
+        "rmse": 4826.338400234139,
+        "r2": 0.5032910345081842
+      }
+    },
+    "xgboost_absolute": {
+      "selection": {
+        "mae": 3439.326200514163,
+        "rmse": 5137.173650528339,
+        "r2": 0.45895096746597264
+      },
+      "test": {
+        "mae": 3410.713746591714,
+        "rmse": 4992.935014555833,
+        "r2": 0.468408182578371
+      }
+    }
+  },
+  "metrics": {
+    "mae": 3377.6335626762234,
+    "rmse": 4826.338400234139,
+    "r2": 0.5032910345081842
+  },
+  "interval": {
+    "nominal_coverage": 0.8,
+    "radius": 5061.523671875,
+    "test_coverage": 0.7891891891891892,
+    "method": "unweighted absolute residual split-conformal; no guarantee under domain/time shift"
+  },
+  "target_in_features": false,
+  "examples": [
+    {
+      "inputs": {
+        "floor_area_sqft": 2200.0,
+        "occupants": 3.0,
+        "heating_degree_days": 7184.0,
+        "cooling_degree_days": 714.0,
+        "home_type": 2,
+        "heating_fuel": 2,
+        "air_conditioning": 1
+      },
+      "actual": 8877.53
+    },
+    {
+      "inputs": {
+        "floor_area_sqft": 2200.0,
+        "occupants": 2.0,
+        "heating_degree_days": 7345.0,
+        "cooling_degree_days": 572.0,
+        "home_type": 2,
+        "heating_fuel": 1,
+        "air_conditioning": 1
+      },
+      "actual": 9596.54
+    },
+    {
+      "inputs": {
+        "floor_area_sqft": 1980.0,
+        "occupants": 3.0,
+        "heating_degree_days": 937.0,
+        "cooling_degree_days": 3506.0,
+        "home_type": 2,
+        "heating_fuel": 1,
+        "air_conditioning": 1
+      },
+      "actual": 13629.37
+    }
+  ]
+}

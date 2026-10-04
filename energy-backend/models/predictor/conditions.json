@@ -1,0 +1,190 @@
+{
+  "source": "UCI Appliances Energy Prediction; one Belgian household, 2016",
+  "source_url": "https://archive.ics.uci.edu/dataset/374/appliances+energy+prediction",
+  "dataset_sha256": "2820bf712ad0275cb18b85a05250926100d8e65ebb9f4d2d016ca91ea152a25d",
+  "rows": 19735,
+  "unit": "Wh per 10-minute interval",
+  "target": "Appliances",
+  "warning": "Experimental conditional estimate, not a forecast or causal saving. Same-interval lighting/sensors must be supplied; not validated for other homes.",
+  "mode": "conditions",
+  "selected_model": "extra_trees",
+  "selection_rule": "lowest selection MAE",
+  "features": [
+    "temperature_c",
+    "humidity_percent",
+    "lighting_wh",
+    "outdoor_temperature_c",
+    "hour",
+    "day_of_week",
+    "month"
+  ],
+  "ranges": {
+    "temperature_c": {
+      "min": 14.696049382716053,
+      "max": 21.32177248677249,
+      "default": 18.162962962962954
+    },
+    "humidity_percent": {
+      "min": 30.58500000000001,
+      "max": 59.05302469135802,
+      "default": 44.68444444444444
+    },
+    "lighting_wh": {
+      "min": 0.0,
+      "max": 70.0,
+      "default": 0.0
+    },
+    "outdoor_temperature_c": {
+      "min": -5.0,
+      "max": 14.1,
+      "default": 5.1
+    },
+    "hour": {
+      "min": 0.0,
+      "max": 23.833333333333332,
+      "default": 12.0
+    },
+    "day_of_week": {
+      "min": 0.0,
+      "max": 6.0,
+      "default": 3.0
+    },
+    "month": {
+      "min": 1.0,
+      "max": 4.0,
+      "default": 2.0
+    }
+  },
+  "choices": {},
+  "split_policy": "chronological 60/15/10/15: train/selection/calibration/test",
+  "split_rows": {
+    "train": 11841,
+    "selection": 2960,
+    "calibration": 1973,
+    "test": 2961
+  },
+  "comparison": {
+    "mean_baseline": {
+      "selection": {
+        "mae": 61.760049256248905,
+        "rmse": 110.70651817253936,
+        "r2": -0.0040606766462911725
+      },
+      "test": {
+        "mae": 52.19748176909285,
+        "rmse": 90.87453530682004,
+        "r2": -2.6228677424633418e-05
+      }
+    },
+    "median_baseline": {
+      "selection": {
+        "mae": 52.763513513513516,
+        "rmse": 119.08235850917679,
+        "r2": -0.1617386272889889
+      },
+      "test": {
+        "mae": 43.25565687267815,
+        "rmse": 98.08948350734784,
+        "r2": -0.16512328082186833
+      }
+    },
+    "ridge": {
+      "selection": {
+        "mae": 53.66623740922278,
+        "rmse": 107.67272212936862,
+        "r2": 0.05021575729066641
+      },
+      "test": {
+        "mae": 45.23387213984401,
+        "rmse": 88.852440538626,
+        "r2": 0.04398279732445942
+      }
+    },
+    "extra_trees": {
+      "selection": {
+        "mae": 49.056812700222224,
+        "rmse": 109.41968634808929,
+        "r2": 0.019145688037590647
+      },
+      "test": {
+        "mae": 42.58087314703574,
+        "rmse": 93.17336678176929,
+        "r2": -0.05126102225687945
+      }
+    },
+    "xgboost": {
+      "selection": {
+        "mae": 52.22251029135408,
+        "rmse": 108.95585402131368,
+        "r2": 0.02744378644260237
+      },
+      "test": {
+        "mae": 51.13654937473595,
+        "rmse": 96.49338164785851,
+        "r2": -0.12751424651312826
+      }
+    },
+    "xgboost_absolute": {
+      "selection": {
+        "mae": 49.320762565973645,
+        "rmse": 114.68058242312858,
+        "r2": -0.07744064423975394
+      },
+      "test": {
+        "mae": 42.18789578675821,
+        "rmse": 95.57937663051801,
+        "r2": -0.10625531966308954
+      }
+    }
+  },
+  "metrics": {
+    "mae": 42.58087314703574,
+    "rmse": 93.17336678176929,
+    "r2": -0.05126102225687945
+  },
+  "interval": {
+    "nominal_coverage": 0.8,
+    "radius": 45.70032975609077,
+    "test_coverage": 0.806146572104019,
+    "method": "unweighted absolute residual split-conformal; no guarantee under domain/time shift"
+  },
+  "target_in_features": false,
+  "examples": [
+    {
+      "inputs": {
+        "temperature_c": 21.514148148148138,
+        "humidity_percent": 38.166582010582005,
+        "lighting_wh": 0.0,
+        "outdoor_temperature_c": 11.9666666666667,
+        "hour": 4.666666666666667,
+        "day_of_week": 5.0,
+        "month": 5.0
+      },
+      "actual": 60.0
+    },
+    {
+      "inputs": {
+        "temperature_c": 21.513301587301587,
+        "humidity_percent": 38.09481481481481,
+        "lighting_wh": 0.0,
+        "outdoor_temperature_c": 11.9333333333333,
+        "hour": 4.833333333333333,
+        "day_of_week": 5.0,
+        "month": 5.0
+      },
+      "actual": 60.0
+    },
+    {
+      "inputs": {
+        "temperature_c": 21.518941798941796,
+        "humidity_percent": 38.04740740740741,
+        "lighting_wh": 0.0,
+        "outdoor_temperature_c": 11.9,
+        "hour": 5.0,
+        "day_of_week": 5.0,
+        "month": 5.0
+      },
+      "actual": 60.0
+    }
+  ]
+}

@@ -3,13 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Zap, BarChart3, MessageCircle, Home, Menu, X, BotMessageSquare } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ProfileMenu from "./ProfileMenu";
 
 const navItems = [
-  { path: "/", label: "Home", icon: Home },
+  { path: "/index", label: "Home", icon: Home },
+  { path: "/forecast", label: "Forecast", icon: Zap },
   { path: "/predict", label: "Predict", icon: Zap },
   { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { path: "/chatbot", label: "Chatbot", icon: BotMessageSquare },
-  { path: "/queries", label: "Queries", icon: MessageCircle },
+  { path: "/anomalies", label: "Unusual usage", icon: BarChart3 },
+  { path: "/copilot", label: "Copilot", icon: BotMessageSquare },
+  { path: "/bills", label: "Bills", icon: MessageCircle },
 ];
 
 const Navbar = () => {
@@ -22,17 +25,17 @@ const Navbar = () => {
         <div className="glass rounded-2xl px-6 py-3 shadow-soft">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
+            <Link to="/index" className="flex items-center gap-2 group">
               <div className="gradient-bg p-2 rounded-xl group-hover:shadow-glow transition-all duration-300">
                 <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold gradient-text hidden sm:block">
-                Smart Home Energy Monitoring and Predictor
+                EnerGenAI
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -50,15 +53,18 @@ const Navbar = () => {
               })}
             </div>
 
-            {/* Mobile Menu Button */}
+            <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="lg:hidden"
+              aria-label="Toggle navigation"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </Button>
+            <ProfileMenu />
+            </div>
           </div>
         </div>
 
@@ -69,7 +75,7 @@ const Navbar = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="glass rounded-2xl mt-2 p-4 md:hidden shadow-soft"
+              className="glass rounded-2xl mt-2 p-4 lg:hidden shadow-soft"
             >
               <div className="flex flex-col gap-2">
                 {navItems.map((item) => {

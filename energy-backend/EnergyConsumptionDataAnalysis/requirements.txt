@@ -1,0 +1,2 @@
+# Compatibility install path; active API is energy-backend/app/main.py.
+-r ../requirements.txt
